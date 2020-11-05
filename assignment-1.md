@@ -1,4 +1,11 @@
-# DSP_Assignment
+Assignment
+================
+
+* Course Title: __Distributed Systems Programming__
+* Course Code: **DSP620S**
+* Assessment: First Assignment
+* Released on: 26/10/2020
+* Due Date: 15/11/2020
 
 # Problem
 
@@ -6,7 +13,6 @@ The purpose of this project is to design and implement **cali**, a __storage sys
 ```json
 {
 	date: "22/10/2020",
-	ID_Key : "AkNJnsomoUndiue8fdHUbds"
 	artists: [
 		{
 			name: "Winston Marshall",
@@ -53,3 +59,15 @@ Your task is to implement **cali** using gRPC as the remote invocation tool in t
 3. implement both the client and the server.
 
 Note that you can use the __crypto__ module to implement your hash function.
+
+
+# Submission Instructions
+
+* This assignment is to be completed by groups of *at most* four (04) students each.
+* For each group, a repository should be created either on [Github](https://github.com) or [Gitlab](https://about.gitlab.com). The URL of the repostiory should be communicated by Saturday, October 31 2020 with all group members set up as contributors.
+* The submission date is is Sunday, November 15 2020, midnight. Please note that *commits* after that deadline will not be accepted. Therefore, a submission will be assessed based on the clone of the repository at the deadline.
+* Any group that fails to submit on time will be awarded the mark 0.
+* Although this is a group project, each member will receive a mark that reflects his/her contribution in the project. More particularly, if a student's username does not appear in the commit log of the group repository, that student will be assumed to not have contributed to the project and thus be awarded the mark 0.
+* Each group is expected to present its project after the submission deadline.
+* There should be no assumption about the execution environment of your code. It could be run using a specific framework or on the command line.
+* In the case of plagiarism (groups copying from each other or submissions copied from the Internet), all submissions involved will be awarded the mark 0, and each student will receive a warning.
