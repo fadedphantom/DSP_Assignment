@@ -1,0 +1,71 @@
+Planning 
+
+Aim:
+
+-Design cali storage system for songs released by an artist/group
+
+-Records saved in a JSON file
+
+Stage 1:
+Create server
+Create client
+Create database
+Create protocol buffer
+
+Stage 2:
+Implement interface in client:
+Interface enable user to:
+Write record
+Update record
+Read record
+
+Stage 3:
+Write record function:
+-Create arguement that can be passed by client to server
+---do not prioratise hash yet, can try to implement it
+-Server should be able to tell if record exists
+-if false{
+save file
+}
+
+else {
+return (key)* and latest version
+}
+
+Stage 4:
+Update record function:
+-Client capable of sending details attached to record (supposed to be key, version and
+-If details unknown{
+return error message
+}
+-Else {save modified, replaced with new version}
+-When update is successful return key and new version
+Stage 5:
+-Return to stage 2 and implement hash functions in stages 2 – 4
+
+Stage 6:
+Read record function:
+
+-If key passed{
+client will receive record corresponding to latest version depending on that key
+}
+-If no record{
+return error message
+}
+
+-if key and version passed{
+return record
+}
+else{
+return error message
+}
+
+
+
+
+
+
+
+
+
+
