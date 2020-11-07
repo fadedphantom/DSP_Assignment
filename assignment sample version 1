@@ -1,0 +1,159 @@
+//the following codes are simple experimentation to client server communication and a basic attempt to introduce the hashing functions
+//It's purpose is to test theories that might be executed in the assignment
+
+proto:
+
+syntax = "proto3";
+
+service records {
+
+    //Client send music record passed as arguement to server, expects hashcode which will be used as key in response
+    rpc writeRecord (musicRecords) returns (recordIdentity);
+
+}
+
+//Arguement to be passed by client detailing information of the record
+message musicRecords {
+
+    string date = 1;
+    string artists = 2;
+    string band = 3;
+    string songs = 4;
+
+}
+
+//Response of the server, serves to save details of record
+message recordIdentity{
+
+    string recordName = 1;
+    string key = 2;
+    int32 verNum = 3;
+}
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Client:
+
+import ballerina/grpc;
+import ballerina/io;
+
+public function main (string... args) {
+
+    recordsBlockingClient blockingEp = new("http://localhost:9090");
+
+    //Obtain user input on details of particular song
+    
+    string enter_date = io:readln("Enter the date record is being created: ");
+    string enter_artists = io:readln("Enter the artisit/s: ");
+    string enter_band = io:readln("Enter the band: ");
+    string enter_song = io:readln("Enter the song name: ");
+
+    //add user details to be sent to server from user input
+    
+    musicRecords mrecords = {date: enter_date, artists: enter_artists, band: enter_band, songs: enter_song};
+
+    //send user details
+    
+    var clientUnion = blockingEp->writeRecord(mrecords);
+
+    //condition determined by success of transmission
+    
+    if (clientUnion is grpc:Error) {
+
+        io:println("grpc error");
+        
+    }
+
+    else {
+
+        io:println("Recieved from the server: ", clientUnion);
+    }
+
+
+}
+
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+Server:
+
+import ballerina/grpc;
+import ballerina/io;
+import ballerina/crypto;
+
+
+//initialise type for record
+
+listener grpc:Listener ep = new (9090);
+
+service records on ep {
+
+    resource function writeRecord(grpc:Caller caller, musicRecords value) returns error?{
+        // Implementation goes here.
+
+        //Information received from client
+
+        io:println("Recieved from client: Date: ",value.date," Artist: ",value.artists, " Band: ",value.band, "Songs: ", value.songs);
+
+        //Store as a single record
+
+        
+        musicRecords song_1 = {
+            date: value.date,
+            artists: value.artists,          
+            band: value.band,
+            songs: value.songs    
+
+        };
+
+        //Hash record to create key
+
+        string info = song_1.toString();
+
+        byte[]hashIn = info.toBytes();
+
+        byte[]hashOut = crypto:hashMd5(hashIn);
+
+        string Key = hashOut.toBase16();
+
+        //Establish information being returned to client
+        recordIdentity recordID = {recordName: value.date, key: Key, verNum: 0};
+
+        check caller->send(recordID);
+        check caller->complete();
+
+        // You should return a recordIdentity
+    }
+}
+
+public type musicRecords record {|
+    string date = "";
+    string artists = "";
+    string band = "";
+    string songs = "";
+    
+|};
+
+public type recordIdentity record {|
+    string recordName = "";
+    string key = "";
+    int verNum = 0;
+    
+|};
+
+
+
+const string ROOT_DESCRIPTOR = "0A0C7265636F72642E70726F746F22660A0C6D757369635265636F72647312120A046461746518012001280952046461746512180A076172746973747318022001280952076172746973747312120A0462616E64180320012809520462616E6412140A05736F6E67731804200128095205736F6E6773225A0A0E7265636F72644964656E74697479121E0A0A7265636F72644E616D65180120012809520A7265636F72644E616D6512100A036B657918022001280952036B657912160A067665724E756D18032001280552067665724E756D32380A077265636F726473122D0A0B77726974655265636F7264120D2E6D757369635265636F7264731A0F2E7265636F72644964656E74697479620670726F746F33";
+function getDescriptorMap() returns map<string> {
+    return {
+        "record.proto":"0A0C7265636F72642E70726F746F22660A0C6D757369635265636F72647312120A046461746518012001280952046461746512180A076172746973747318022001280952076172746973747312120A0462616E64180320012809520462616E6412140A05736F6E67731804200128095205736F6E6773225A0A0E7265636F72644964656E74697479121E0A0A7265636F72644E616D65180120012809520A7265636F72644E616D6512100A036B657918022001280952036B657912160A067665724E756D18032001280552067665724E756D32380A077265636F726473122D0A0B77726974655265636F7264120D2E6D757369635265636F7264731A0F2E7265636F72644964656E74697479620670726F746F33"
+        
+    };
+}
+
+
+
+
