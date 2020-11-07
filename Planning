@@ -60,6 +60,9 @@ else{
 return error message
 }
 
+Stage 7:
+Check for errors and ensure programme is working correctly.
+Repeat untill program is working
 
 
 
