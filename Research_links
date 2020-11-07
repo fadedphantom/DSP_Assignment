@@ -1,3 +1,5 @@
+grpc: https://ballerina.io/learn/api-docs/ballerina/grpc
+
 Database: https://github.com/ballerina-platform/module-ballerinax-mongodb
 
 JSON files: https://ballerina.io/learn/by-example/json.html
