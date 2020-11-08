@@ -1,0 +1,28 @@
+{
+	"date": "22/10/2020",
+	"artists": [
+		{
+			"name": "Patrick Musha",
+            "member": "yes"
+            
+		},
+		{
+			"name": "Maria Uncle",
+            "member": "yes"
+            
+		},
+		{
+			"name": "Deolind Kama",
+            "membe": "no"
+            
+		}
+	],
+	"band": "Kinxgdom first",
+	"songs": [
+		{
+			"title": "you never lost a battle",
+			"genre": "Gospel",
+			"platform": "Itune"
+		}
+	]
+}
