@@ -1,0 +1,183 @@
+//After multiple trial and error, stage 1 of the assignment has been completed
+//Within the client a user is able to enter the details of the new record to be created
+//The server will then create that record and store it as a jason file
+//The record will be hashed using the hashMd5 protocol
+//Finally the server will send the hash back to the client as a key as well as the version number
+//Expermimentation is still ongoing on how to check if the file already exists. 
+//I believe the solution lies in the ballerina/files module under the exists command but have to figure out how to successfully implement it.
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+Proto
+syntax = "proto3";
+
+service records {
+
+    //Client send music record passed as arguement to server, expects hashcode which will be used as key in response
+    rpc writeRecord (details) returns (recordId);
+
+}
+
+//Arguement to be passed by client detailing information of the record
+message details {
+
+    string date = 1;
+    string artists = 2;
+    string band = 3;
+    string songs = 4;
+
+}
+
+//Response of the server, serves to save details of record
+message recordId{
+
+    string recordName = 1;
+    string recordKey = 2;
+    int32 verNum = 3;
+}
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Client:
+
+import ballerina/grpc;
+import ballerina/io;
+
+public function main (string... args) {
+
+    recordsBlockingClient blockingEp = new("http://localhost:9090");
+
+    string enter_date = io:readln("Enter the date record is being created: ");
+    string enter_artists = io:readln("Enter the artisit/s: ");
+    string enter_band = io:readln("Enter the band: ");
+    string enter_song = io:readln("Enter the song name: ");
+
+    //add user details to be sent to server from user input
+    details musicRecords = {date: enter_date, artists: enter_artists, band: enter_band, songs: enter_song};
+    
+    //send user details
+    var clientUnion = blockingEp->writeRecord(musicRecords);
+
+    //condition determined by success of transmission
+    if (clientUnion is grpc:Error) {
+
+        io:println("grpc error");
+        
+    }
+
+    else {
+
+        io:println("Recieved from the server: ", clientUnion);
+    }
+
+
+
+}
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+Server:
+
+import ballerina/grpc;
+import ballerina/io;
+import ballerina/log;
+//import ballerina/file;
+import ballerina/crypto;
+
+
+listener grpc:Listener ep = new (9090);
+
+//Function that enables us to write to a json file
+function write(json content, string path) returns @tainted error? {
+
+    io:WritableByteChannel wbc = check io:openWritableFile(path);
+    io:WritableCharacterChannel wch = new (wbc, "UTF8");
+    var result = wch.writeJson(content);
+   
+    return result;
+}
+
+service records on ep {
+
+    resource function writeRecord(grpc:Caller caller, details value)returns error? {
+        // Implementation goes here.
+
+        //Information received from client
+        io:println("Recieved from client: Date: ",value.date," Artist: ",value.artists, " Band: ",value.band, " Songs: ", value.songs);
+        
+        string path = io:readln("Enter new record name: ");        
+
+        //file path in which to save the information   
+        string filePath = "./src/"+path+".json";
+
+        details song = {
+            date: value.date,
+            artists: value.artists,          
+            band: value.band,
+            songs: value.songs  
+
+        };
+
+        //Hash record to create key
+        string info = song.toString();
+
+        byte[]hashIn = info.toBytes();
+
+        byte[]hashOut = crypto:hashMd5(hashIn);
+
+        string Key = hashOut.toBase16();
+
+        //Tests if the specified record exists
+        //boolean result = file:exists(<@untained>  filePath);
+
+         io:println("Preparing to write json file");
+
+        
+         json|error songJ = json.constructFrom(song);
+        
+            if (songJ is json){
+
+            var wResult = write(songJ, <@untained>  filePath);
+                if (wResult is error) {
+                    log:printError("Error occurred while writing json: ", wResult);
+             } else {
+                    io:println("File has been successfully written!");
+                    }
+            }
+               
+        // You should return a recordId
+
+        recordId recordID = {recordName: value.date, recordKey: Key, verNum: 0};
+        check caller->send(recordID);
+        check caller->complete();
+    }
+
+    
+}
+
+
+public type details record {|
+    string date = "";
+    string artists = "";
+    string band = "";
+    string songs = "";
+    
+|};
+
+public type recordId record {|
+    string recordName = "";
+    string recordKey = "";
+    int verNum = 0;
+    
+|};
+
+
+
+const string ROOT_DESCRIPTOR = "0A0D7265636F7264732E70726F746F22610A0764657461696C7312120A046461746518012001280952046461746512180A076172746973747318022001280952076172746973747312120A0462616E64180320012809520462616E6412140A05736F6E67731804200128095205736F6E677322600A087265636F72644964121E0A0A7265636F72644E616D65180120012809520A7265636F72644E616D65121C0A097265636F72644B657918022001280952097265636F72644B657912160A067665724E756D18032001280552067665724E756D322D0A077265636F72647312220A0B77726974655265636F726412082E64657461696C731A092E7265636F72644964620670726F746F33";
+function getDescriptorMap() returns map<string> {
+    return {
+        "records.proto":"0A0D7265636F7264732E70726F746F22610A0764657461696C7312120A046461746518012001280952046461746512180A076172746973747318022001280952076172746973747312120A0462616E64180320012809520462616E6412140A05736F6E67731804200128095205736F6E677322600A087265636F72644964121E0A0A7265636F72644E616D65180120012809520A7265636F72644E616D65121C0A097265636F72644B657918022001280952097265636F72644B657912160A067665724E756D18032001280552067665724E756D322D0A077265636F72647312220A0B77726974655265636F726412082E64657461696C731A092E7265636F72644964620670726F746F33"
+        
+    };
+}
+

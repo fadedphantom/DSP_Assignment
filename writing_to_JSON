@@ -1,0 +1,68 @@
+//After extensive research the following piece of code was created the base code was acquired using https://ballerina.io/learn/by-example/json-io.html
+//However the code had to be adjusted to enable one to specify the file to be created
+//Code will be adapted to be used in assignment
+
+
+import ballerina/io;
+import ballerina/log;
+
+//Function that enables us to write to a json file
+function write(json content, string path) returns @tainted error? {
+
+    io:WritableByteChannel wbc = check io:openWritableFile(path);
+    io:WritableCharacterChannel wch = new (wbc, "UTF8");
+    var result = wch.writeJson(content);
+   
+    return result;
+}
+
+//function that enables us to read to a json file
+function read(string path) returns @tainted json|error {
+
+    io:ReadableByteChannel rbc = check io:openReadableFile(path);
+
+    io:ReadableCharacterChannel rch = new (rbc, "UTF8");
+    var result = rch.readJson();
+    
+    return result;
+}
+
+public function main() {
+
+    //Allows one to enter the name of the jason file
+    string path = io:readln("Enter new record name: ");
+
+    //file path in which to save the information
+    string filePath = "./src/"+path+".json";
+
+    //sample of the record that can be saved
+    json j2 = {
+        "Store": {
+            "@id": "A",
+            "name": "Michael Apata",
+            "address": {
+                "street": "Main",
+                "city": "94"
+            },
+            "codes": ["4", "8"]
+        }
+    };
+    io:println("Preparing to write json file");
+
+    //Writing the chosen information to the required json file
+    var wResult = write(j2, <@untained>  filePath);
+    if (wResult is error) {
+        log:printError("Error occurred while writing json: ", wResult);
+    } else {
+        io:println("Preparing to read the content written");
+
+        var rResult = read(<@untained> filePath);
+        if (rResult is error) {
+            log:printError("Error occurred while reading json: ",
+                            err = rResult);
+        } else {
+            io:println(rResult.toJsonString());
+        }
+    }
+}
+
