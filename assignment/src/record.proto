@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+service greeting {    
+    
+    //Write
+    rpc replyWrite(Record) returns (Identity);
+
+    //Update
+    rpc replyUpdate(updateRequest) returns (Identity);
+    
+    //Read
+    //Using Key
+    rpc replyRead_1(Key) returns (Record);    
+    
+    //Using Key and Version
+    rpc replyRead_2(Identity) returns (Record);
+    
+    //Using criteria artist
+    rpc replyRead_3(Artist) returns (Record);
+       
+    //Using criteria band    
+    rpc replyRead_4(Band) returns (Record);
+    
+    //Using criteria songs
+    rpc replyRead_5(Songs) returns (Record);
+    
+}
+
+message Artist{
+
+        string name = 1;
+        string member = 2;
+}
+
+message Band{
+       
+        string bandName = 1;
+        
+}
+
+message Songs{
+
+        string title = 1;
+        string genre = 2;
+        string platform = 3;
+}
+
+message Record{
+
+        string recordName = 1;
+        string date = 2;
+        Artist artists = 3;
+        Band band = 4;
+        Songs song = 5;
+}
+
+message Identity{
+
+        string hash_Key = 1;
+        int32 versionNum = 2;
+}
+
+message updateRequest{
+
+        string hash_Key = 1;
+        int32 versionNum = 2;
+        string recordName = 3;
+        string date = 4;
+        Artist artists = 5;
+        Band band = 6;
+        Songs song = 7;
+
+
+}
+
+message Key{        
+            
+        string hash_Key = 1;
+}
+
+
