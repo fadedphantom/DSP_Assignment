@@ -1,0 +1,52 @@
+syntax = "proto3";
+import "google/protobuf/wrappers.proto";
+
+service CaliService {
+  rpc add_record(AddingRequest) returns (AddingResponse){}
+  rpc update_record(UpdateRequest) returns (google.protobuf.StringValue){}
+  rpc read_record(ReadRequest) returns (ReadResponse){}
+}
+
+message AddingRequest{
+    Record rec = 1;
+    string custom_hash = 2;
+}
+
+message UpdateRequest{
+    Record rec = 1;
+    string ver = 2;
+    string hash = 3;
+}
+
+message ReadRequest{
+    string hash = 1;
+    string ver = 2;
+}
+
+message AddingResponse  {
+    int32 record_version = 1;
+    string hash = 2;
+}
+
+message ReadResponse {
+    bool success = 1;
+    Record rec = 2;
+};
+
+message Record{
+    string date = 1;
+    string band = 2;
+    repeated Artist artists = 3;
+    repeated Song songs = 4;
+}
+
+message Song{
+    string title = 1;
+    string genre = 2;
+    string platform = 3;
+}
+
+message Artist {
+    string name = 1;
+    string member = 2;
+}
