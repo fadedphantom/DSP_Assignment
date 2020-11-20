@@ -1,16 +1,20 @@
 import ballerina/grpc;
 import ballerina/log;
+//import ballerina/crypto;
 
 listener grpc:Listener ep = new (9090);
-map<recordInfo> recordMap = {};
+
+@tainted map<recordInfo> recordMap = {};
 
 service CaliRecordMgmt on ep {
 
+//Function to write to JSON record
     resource function addRecord(grpc:Caller caller, recordInfo recordReq) {
         string recordId = recordReq.Id;
         recordMap[recordReq.Id] = recordReq;
+
         // Create response message.
-        string payload = "Status : Record created; Record ID : " + recordId;
+        string payload = "Status : Record created; Record ID : " + recordId + "/n Version Number: ";
 
         // Send response to the caller.
         error? result = caller->send(payload);
@@ -20,6 +24,9 @@ service CaliRecordMgmt on ep {
                     + <string>result.detail()["message"] + "\n");
         }
     }
+
+    //Function to Read Record JSON file and reply to client
+    //TODO: Add JSON Implementation
     resource function readRecord(grpc:Caller caller, string recordId) {
         string payload = "";
         error? result = ();
@@ -48,6 +55,7 @@ service CaliRecordMgmt on ep {
         }
     }
 
+    //Function to update json record
     resource function updateRecord(grpc:Caller caller, recordInfo updateRecord) {
                 string payload;
         error? result = ();
@@ -72,6 +80,8 @@ service CaliRecordMgmt on ep {
         }
 
     }
+
+    //Function to delete JSON records
     resource function deleteRecord(grpc:Caller caller, string recordId) {
          string payload;
         error? result = ();
