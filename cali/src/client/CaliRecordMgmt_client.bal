@@ -1,6 +1,6 @@
-import ballerina/log;
 import ballerina/grpc;
 import ballerina/io;
+import ballerina/log;
 
 public function main (string... args) {
 
@@ -31,10 +31,27 @@ boolean action_4 = answer.equalsIgnoreCaseAscii("4");
         string song_Title = io:readln("Enter title of the song: ");
         string song_Genre= io:readln("Enter genre of the song: ");
         string song_Platform = io:readln("Enter platform of the song: ");
+
+        json recordInformation = {
+	        "date": date_Created,
+	        "artists":
+		        {
+			        "Member Names": artist_Name,
+			        "member": band_member
+		        },
+	        "band name": band_Name,
+	        "songs": 
+		        {
+			        "title": song_Title,
+			        "genre": song_Genre,
+			        "platform": song_Platform
+		        }
+        };
         
         
         log:printInfo("-----------------------Creating new record-----------------------");
-        recordInfo recordReq = {date: date_Created , Artists: artist_Name, description: song_Platform, band: band_Name, songs: song_Title, Id: "kabisldii"};
+
+        recordInfo recordReq = {date: date_Created , Artists: artist_Name, description: song_Platform, band: band_Name, songs: song_Title};
         
         var addResponse = blockingEp->addRecord(recordReq);
         if (addResponse is error) {

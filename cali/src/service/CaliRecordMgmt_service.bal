@@ -1,6 +1,8 @@
 import ballerina/grpc;
 import ballerina/log;
-//import ballerina/crypto;
+import ballerina/io;
+import ballerina/crypto;
+import ballerina/file;
 
 listener grpc:Listener ep = new (9090);
 
@@ -10,11 +12,21 @@ service CaliRecordMgmt on ep {
 
 //Function to write to JSON record
     resource function addRecord(grpc:Caller caller, recordInfo recordReq) {
-        string recordId = recordReq.Id;
-        recordMap[recordReq.Id] = recordReq;
+
+        json|error j1 = json.constructFrom(recordReq);
+        //Type casts JSON|error to JSON for crypto
+        json recordDetails = <json>j1;
+        string ID = IDhash(recordDetails);
+
+        string filePath = "./src/"+ID+".json";
+
+        var wResult = write(recordDetails, filePath);
+        if (wResult is error) {
+        log:printError("Error occurred while writing json: ", wResult);
+        }
 
         // Create response message.
-        string payload = "Status : Record created; Record ID : " + recordId + "/n Version Number: ";
+        string payload = "Status : Record created; Record ID : " + ID + "/n Version Number: ";
 
         // Send response to the caller.
         error? result = caller->send(payload);
@@ -26,10 +38,23 @@ service CaliRecordMgmt on ep {
     }
 
     //Function to Read Record JSON file and reply to client
-    //TODO: Add JSON Implementation
     resource function readRecord(grpc:Caller caller, string recordId) {
-        string payload = "";
+
+        string filePath = "./src/"+recordId+".json";
+
+        io:println("Preparing to read the content written");
+
+        var rResult = read(<@untained>  filePath);
+        if (rResult is error) {
+            log:printError("Error occurred while reading json: ",
+                            err = rResult);
+        } else {
+            io:println(rResult.toJsonString());
+        }
+
+        string payload = rResult.toString();
         error? result = ();
+
         // Find the requested record from the map.
         if (recordMap.hasKey(recordId)) {
             var jsonValue = typedesc<json>.constructFrom(recordMap[recordId]);
@@ -56,6 +81,7 @@ service CaliRecordMgmt on ep {
     }
 
     //Function to update json record
+    //TODO JSON Implementation
     resource function updateRecord(grpc:Caller caller, recordInfo updateRecord) {
                 string payload;
         error? result = ();
@@ -83,7 +109,22 @@ service CaliRecordMgmt on ep {
 
     //Function to delete JSON records
     resource function deleteRecord(grpc:Caller caller, string recordId) {
-         string payload;
+        
+        boolean fileExists = file:exists(<@untained> (recordId + ".json"));
+        string payload;
+
+        if (fileExists == true) {
+            error? removeResults = file:remove(<@untained> ("./src/"+recordId+".json"));
+            if (removeResults is ()) {
+                payload = "Removed file at /src/"+recordId+".json";
+            }
+        }
+        else {
+            payload = "File does not exist @ /src/"+recordId+".json";
+        }
+        
+        
+        
         error? result = ();
         if (recordMap.hasKey(recordId)) {
             // Remove the requested record from the map.
@@ -102,6 +143,57 @@ service CaliRecordMgmt on ep {
                     + <string>result.detail()["message"] + "\n");
         }
     }
+}
+
+//Closes read channel
+function closeRc(io:ReadableCharacterChannel rc) {
+    var result = rc.close();
+    if (result is error) {
+        log:printError("Error occurred while closing character stream",
+                        err = result);
+    }
+}
+
+//Closes write channel
+function closeWc(io:WritableCharacterChannel wc) {
+    var result = wc.close();
+    if (result is error) {
+        log:printError("Error occurred while closing character stream",
+                        err = result);
+    }
+}
+
+
+//Function to hash JSon files ths creating ID
+function IDhash(json recordDetails) returns string {
+
+        byte[] output = crypto:hashSha256(recordDetails.toJsonString().toString().toBytes());
+        string hash = output.toBase64();
+
+        return hash;
+        
+}
+
+//Function to write JSOn file
+function write(json content, string path) returns @tainted error? {
+
+    io:WritableByteChannel wbc = check io:openWritableFile(path);
+
+    io:WritableCharacterChannel wch = new (wbc, "UTF8");
+    var result = wch.writeJson(content);
+    closeWc(wch);
+    return result;
+}
+
+//Function to read JSON file
+function read(string path) returns @tainted json|error {
+
+    io:ReadableByteChannel rbc = check io:openReadableFile(path);
+
+    io:ReadableCharacterChannel rch = new (rbc, "UTF8");
+    var result = rch.readJson();
+    closeRc(rch);
+    return result;
 }
 
 public type recordInfo record {|
@@ -124,4 +216,3 @@ function getDescriptorMap() returns map<string> {
         
     };
 }
-
