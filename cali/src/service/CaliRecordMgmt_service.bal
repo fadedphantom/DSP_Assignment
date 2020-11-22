@@ -41,6 +41,7 @@ service CaliRecordMgmt on ep {
     resource function readRecord(grpc:Caller caller, string recordId) {
 
         string filePath = "./src/"+recordId+".json";
+        string payload;
 
         io:println("Preparing to read the content written");
 
@@ -49,10 +50,10 @@ service CaliRecordMgmt on ep {
             log:printError("Error occurred while reading json: ",
                             err = rResult);
         } else {
-            io:println(rResult.toJsonString());
+            payload = rResult.toJsonString();
         }
 
-        string payload = rResult.toString();
+
         error? result = ();
 
         // Find the requested record from the map.
@@ -83,7 +84,8 @@ service CaliRecordMgmt on ep {
     //Function to update json record
     //TODO JSON Implementation
     resource function updateRecord(grpc:Caller caller, recordInfo updateRecord) {
-                string payload;
+        
+        string payload;
         error? result = ();
         // Find the record that needs to be updated.
         string recordId = updateRecord.Id;
@@ -120,7 +122,7 @@ service CaliRecordMgmt on ep {
             }
         }
         else {
-            payload = "File does not exist @ /src/"+recordId+".json";
+            payload = "File does not exist at /src/"+recordId+".json";
         }
         
         

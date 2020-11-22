@@ -31,22 +31,6 @@ boolean action_4 = answer.equalsIgnoreCaseAscii("4");
         string song_Title = io:readln("Enter title of the song: ");
         string song_Genre= io:readln("Enter genre of the song: ");
         string song_Platform = io:readln("Enter platform of the song: ");
-
-        json recordInformation = {
-	        "date": date_Created,
-	        "artists":
-		        {
-			        "Member Names": artist_Name,
-			        "member": band_member
-		        },
-	        "band name": band_Name,
-	        "songs": 
-		        {
-			        "title": song_Title,
-			        "genre": song_Genre,
-			        "platform": song_Platform
-		        }
-        };
         
         
         log:printInfo("-----------------------Creating new record-----------------------");
@@ -66,8 +50,26 @@ boolean action_4 = answer.equalsIgnoreCaseAscii("4");
     }
 
     if(action_2 == true){
+
+        string record_Name = io:readln("Enter Record name: ");
+        string date_Created = io:readln("Enter date Record is being created: ");
+
+        //Artist
+        string artist_Name = io:readln("Enter artists Name: ");
+        string band_member = io:readln("If artist is a member enter yes, else enter no: ");
+        
+        //Band
+        string band_Name = io:readln("Enter band name: ");
+
+        //Songs
+        string song_Title = io:readln("Enter title of the song: ");
+        string song_Genre= io:readln("Enter genre of the song: ");
+        string song_Platform = io:readln("Enter platform of the song: ");
+
         log:printInfo("--------------------Updating an existing record--------------------");
-        recordInfo updateReq = {date: "100500", Artists:"XYZ", description:"Sample record.", band: "Mumford & sons", songs: "dunno", Id: "kabisldii"};
+
+        recordInfo updateReq = {date: date_Created , Artists: artist_Name, description: song_Platform, band: band_Name, songs: song_Title};
+        
         [string, grpc:Headers]|grpc:Error updateResponse = blockingEp->updateRecord(updateReq);
         if (updateResponse is error) {
             log:printError("Error from Connector: " + updateResponse.reason() + " - "
@@ -84,7 +86,10 @@ boolean action_4 = answer.equalsIgnoreCaseAscii("4");
     if(action_3 == true){
 
         log:printInfo("---------------------Read an existing record---------------------");
-        [string, grpc:Headers]|grpc:Error findResponse = blockingEp->readRecord("100500");
+
+        string record_ID = io:readln("Enter Record ID: ");
+
+        [string, grpc:Headers]|grpc:Error findResponse = blockingEp->readRecord(record_ID);
         if (findResponse is error) {
             log:printError("Error from Connector: " + findResponse.reason() + " - "
                                                     + <string>findResponse.detail()["message"] + "\n");
@@ -99,7 +104,10 @@ boolean action_4 = answer.equalsIgnoreCaseAscii("4");
 
     if(action_4 == true){
         log:printInfo("-------------------------Delete a record------------------------");
-        [string, grpc:Headers]|grpc:Error deleteResponse = blockingEp->deleteRecord("100500");
+
+        string record_ID = io:readln("Enter Record ID: ");
+        
+        [string, grpc:Headers]|grpc:Error deleteResponse = blockingEp->deleteRecord(record_ID);
         if (deleteResponse is error) {
             log:printError("Error from Connector: " + deleteResponse.reason() + " - "
                     + <string>deleteResponse.detail()["message"] + "\n");
